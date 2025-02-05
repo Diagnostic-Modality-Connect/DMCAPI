@@ -9,10 +9,12 @@ info:
 
     This API is intended to be compatible with the DMI, but to be consumed directly by providers and/or practices so it includes only the endpoints to interrogate services,
     create and manage orders, retrieve results, and manage event subscriptions.  
-    
-servers:
-  - url: 'http://localhost:4010'
-    description: Local Mock Server
+
+# Not sure about servers for now
+# servers:
+#  - url: 'http://localhost:4010'
+#    description: Local Mock Server
+
 paths:
   /health:
     get:
