@@ -1,0 +1,2860 @@
+openapi: 3.0.0
+x-stoplight:
+  id: 545mk2dwwzqkv
+info:
+  title: DMI API
+  version: v1.0.0
+  description: |
+    # API Reference
+    The Diagnostic Modality Integrator API is organized around REST, has predictable resource-oriented URLs, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+    
+    You can use the DMI API is test mode (with the test API keys) which doesn't affect your real data or generates any real interaction with diagnostic modality providers.
+    
+    ## Authentication
+    The DMI API use API keys to authenticate requests for most operations. You can [view](https://nominal.stoplight.io/docs/dmi/856061bdc3bcf-get-organization-api-keys) and [regenerate](https://nominal.stoplight.io/docs/dmi/0284e6090ecf0-regenerate-organization-api-keys) your API keys using the Organization endpoints.
+    
+    Organization management is secured using the [JWT Bearer Auth](https://jwt.io/introduction), and users are provisioned by an admin user with server provided credentials using [HTTP Basic Auth](https://en.wikipedia.org/wiki/Basic_access_authentication).
+servers:
+  - url: 'http://localhost:4010'
+    description: Local Mock Server
+  - url: 'http://20.76.167.88'
+    description: Staging Server
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: get-health
+      description: Check the health of the API.
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthCheck'
+        '503':
+          $ref: '#/components/responses/HealthCheck'
+      tags:
+        - Health
+  
+  /services:
+    get:
+      summary: List provider services
+      operationId: get-providers-providerId-services
+      description: |
+        Retrieve the directory of services for the specified provider and optionally a configured integration.
+      parameters: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/ServiceList'
+        '404':
+          description: Integration Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Directory of Services
+  /services/{serviceCode}:
+    get:
+      summary: Get a provider service by code
+      operationId: get-providers-providerId-services-serviceCode
+      description: |
+        Retrieve the service with the matching service code for the specified provider and optionally a configured integration.
+      parameters:
+        - $ref: '#/components/parameters/serviceCode'
+      responses:
+        '200':
+          $ref: '#/components/responses/Service'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Directory of Services
+  /devices:
+    get:
+      summary: List provider devices
+      operationId: get-providers-providerId-devices
+      description: Retrieve the devices for the specified provider and optionally a configured integration.
+      parameters: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/ProviderDeviceList'
+        '404':
+          description: Provider Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Directory of Services
+  /orders:
+    post:
+      summary: Create an order
+      operationId: post-orders
+      description: Create a test order for a patient.
+      parameters:
+        - $ref: '#/components/parameters/autoSubmitOrder'
+      requestBody:
+        $ref: '#/components/requestBodies/OrderCreateBody'
+      responses:
+        '201':
+          $ref: '#/components/responses/OrderCreated'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+    get:
+      summary: Search orders
+      operationId: get-orders
+      description: Retrieve the orders that match the search criteria.
+      parameters:
+        - $ref: '#/components/parameters/date_start'
+        - $ref: '#/components/parameters/date_end'
+        - $ref: '#/components/parameters/provider_id'
+        - $ref: '#/components/parameters/order_status'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /orders/{orderId}:
+    get:
+      summary: Get an order
+      operationId: get-orders-orderId
+      description: Retrieve the order with the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderFound'
+        '404':
+          description: Order Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+    delete:
+      summary: Cancel an order
+      operationId: delete-orders-orderId
+      description: Cancel the order with the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      responses:
+        '204':
+          description: Order Deleted
+        '404':
+          description: Order Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /orders/{orderId}/report:
+    get:
+      summary: Get the report for an order
+      operationId: get-orders-orderId-report
+      description: Retrieve the report for and with the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderReport'
+        '404':
+          description: Order Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /orders/{orderId}/manifest:
+    get:
+      summary: Get the manifest for an order
+      operationId: get-orders-orderId-manifest
+      description: Retrieve the manifest for the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderManifest'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /orders/{orderId}/tests:
+    post:
+      summary: Add tests to an existing order
+      operationId: post-orders-orderId-tests
+      description: Add a test for the order with the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+      requestBody:
+        $ref: '#/components/requestBodies/TestCodes'
+      responses:
+        '202':
+          $ref: '#/components/responses/202Accepted'
+        '404':
+          description: Order Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '409':
+          description: Test code already in order
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /orders/{orderId}/tests/{testCode}:
+    delete:
+      summary: Cancel a specific test
+      operationId: delete-orders-orderId-tests-testCode
+      description: Cancel the test with the matching test code from the order with the matching order ID.
+      parameters:
+        - $ref: '#/components/parameters/orderId'
+        - $ref: '#/components/parameters/testCode'
+      responses:
+        '204':
+          description: Test removed
+        '404':
+          description: Order Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+        '409':
+          description: Test code not in order
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /reports/{reportId}:
+    get:
+      summary: Get a report by ID
+      operationId: get-reports-reportId
+      description: Retrieve the report with the matching report ID.
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      responses:
+          '200':
+            $ref: '#/components/responses/ReportFound'
+          '404':
+            description: Report Not Found
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+          '403':
+            $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Orders & Results
+  /refs/sexes:
+    get:
+      summary: Get the list of accepted sex codes
+      operationId: get-refs-sexes
+      description: Retrieve the list of the accepted sex codes, along with the list hash
+      parameters:
+        - $ref: '#/components/parameters/integrationId'
+      responses:
+        '200':
+          $ref: '#/components/responses/SexesList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Reference Data
+  /refs/species:
+    get:
+      summary: Get the list of accepted species codes
+      operationId: get-refs-species
+      description: Retrieve the list of the accepted species codes, along with the list hash
+      parameters:
+        - $ref: '#/components/parameters/integrationId'
+      responses:
+        '200':
+          $ref: '#/components/responses/SpeciesList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Reference Data
+  /refs/breeds:
+    get:
+      summary: Get the list of accepted breeds
+      operationId: get-refs-breeds
+      description: Retrieve the list of the accepted breeds, along with the list hash
+      parameters:
+        - $ref: '#/components/parameters/integrationId'
+      responses:
+        '200':
+          $ref: '#/components/responses/BreedsList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Reference Data
+  /events:
+    get:
+      summary: List events
+      operationId: get-events
+      description: Retrieve the list of unacknowledged events.
+      responses:
+        '200':
+          $ref: '#/components/responses/EventList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+  /events/{eventId}:
+    get:
+      summary: Get an event by ID
+      operationId: get-events-eventId
+      description: Retrieve the event with the matching event ID.
+      parameters:
+        - $ref: '#/components/parameters/eventId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventFound'
+        '404':
+          description: Event Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+  /events/acknowledge:
+    post:
+      summary: Acknowledge events
+      operationId: post-events-acknowledge
+      description: Acknowledge the event with the matching event ID.
+      requestBody:
+        $ref: '#/components/requestBodies/EventAcknowledge'
+      responses:
+        '200':
+          description: Acknowledged
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+  /events/search:
+    get:
+      summary: Search events
+      operationId: get-events-search
+      description: Search for events that match the search criteria.
+      parameters:
+        - $ref: '#/components/parameters/date_start'
+        - $ref: '#/components/parameters/date_end'
+        - $ref: '#/components/parameters/event_type'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+  /event-subscriptions:
+    get:
+      summary: List event subscriptions
+      operationId: get-event-subscriptions
+      description: |
+        List all event subscriptions for the current organization.
+      responses:
+        '200':
+          $ref: '#/components/responses/EventSubscriptionList'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+    post:
+      summary: Create an event subscription
+      operationId: post-event-subscriptions
+      description: |
+        Create a subscription for a specific event type. Notifications on all events of the specified type will be sent to the mechanism specified in the subscription type and options.
+      requestBody:
+        $ref: '#/components/requestBodies/EventSubscriptionCreateBody'
+      responses:
+        '201':
+          $ref: '#/components/responses/EventSubscriptionCreated'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+  /event-subscriptions/{subscriptionId}:
+    get:
+      summary: Get an event subscription details
+      operationId: get-event-subscriptions-subscriptionId
+      description: Retrieve the event subscription with the matching subscription ID.
+      parameters:
+        - $ref: '#/components/parameters/subscriptionId'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventSubscriptionFound'
+        '404':
+          description: Subscription Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+    delete:
+      summary: Cancel an event subscription
+      operationId: delete-event-subscriptions-subscriptionId
+      parameters:
+        - $ref: '#/components/parameters/subscriptionId'
+      responses:
+        '204':
+          description: Subscription cancelled
+        '404':
+          description: Subscription Not Found
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403Forbidden'
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Events
+
+components: # more componenets
+  parameters:
+ # parameters/autoSubmitOrder.yaml
+    autoSubmitOrder:
+      name: autoSubmitOrder
+      in: query
+      description: |
+        Auto submit order flag. 
+        
+        If the provider requires manual submission of an order and auto-submission is supported by DMI for the provider, then set to `true` to automatically submit the order and skip the manual submission process.
+      schema:
+        type: boolean
+        default: false
+      
+ # parameters/configurationId.yaml
+    configurationId:
+      name: configurationId
+      in: path
+      required: true
+      description: Id of an existing configuration
+      schema:
+        type: string
+        minLength: 1
+        example: 03c7c61f-a380-4f43-8e65-d2bea3159588
+      
+ # parameters/date_end.yaml
+    date_end:
+      name: date_end
+      in: query
+      description: End date in 'YYYY-MM-DD' format.
+      schema:
+        type: string
+        format: date
+        example: '2019-01-19'
+      
+ # parameters/date_start.yaml
+    date_start:
+      name: date_start
+      in: query
+      description: End date in 'YYYY-MM-DD' format.
+      schema:
+        type: string
+        format: date
+        example: 2019-01-01
+      
+ # parameters/eventId.yaml
+    eventId:
+      name: eventId
+      in: path
+      required: true
+      description: ID of an existing event
+      schema:
+        type: string
+        minLength: 1
+        example: bfd7af61-35e4-40af-827a-a77641bd44ef
+      
+ # parameters/event_type.yaml
+    event_type:
+      name: event-type
+      in: query
+      required: true
+      description: Type of the event
+      schema:
+        $ref: '#/components/schemas/EventType'
+      
+ # parameters/integrationId.yaml
+    integrationId:
+      name: integrationId
+      in: path
+      required: true
+      description: Id of an existing integration
+      schema:
+        type: string
+        minLength: 1
+        example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+      
+ # parameters/integration_id.yaml
+    integration_id:
+      name: integration_id
+      in: query
+      description: Id of an existing integration
+      schema:
+        type: string
+        minLength: 1
+        example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+      
+ # parameters/orderId.yaml
+    orderId:
+      name: orderId
+      in: path
+      required: true
+      description: Id of an existing order
+      schema:
+        type: string
+        minLength: 1
+        example: bfd7af61-35e4-40af-827a-a77641bd44ef
+      
+ # parameters/order_status.yaml
+    order_status:
+      name: order_status
+      in: query
+      description: Order status
+      schema:
+        type: string
+        enum:
+          - pending
+          - completed
+        example: 'pending'
+      
+ # parameters/organizationId.yaml
+    organizationId:
+      name: organizationId
+      in: path
+      required: true
+      description: Id of an existing organization.
+      schema:
+        type: string
+        format: uuid
+      
+ # parameters/practiceId.yaml
+    practiceId:
+      name: practiceId
+      in: path
+      required: true
+      description: Id of an existing practice
+      schema:
+        type: string
+        format: uuid
+      
+ # parameters/practice_id.yaml
+    practice_id:
+      name: practice_id
+      in: query
+      description: Id of an existing practice
+      schema:
+        type: string
+        minLength: 1
+        example: 94f9bdb8-c6f2-4970-8b56-0a2de1fe62e1
+      
+ # parameters/providerId.yaml
+    providerId:
+      name: providerId
+      in: path
+      required: true
+      description: Id of an existing provider
+      schema:
+        type: string
+        minLength: 1
+        example: demo
+      
+ # parameters/provider_id.yaml
+    provider_id:
+      name: provider_id
+      in: query
+      description: Id of an existing provider
+      schema:
+        type: string
+        minLength: 1
+        example: demo
+      
+ # parameters/reportId.yaml
+    reportId:
+      name: reportId
+      in: path
+      required: true
+      description: Id of an existing report
+      schema:
+        type: string
+        minLength: 1
+        example: bfd7af61-35e4-40af-827a-a77641bd44ef
+      
+ # parameters/serviceCode.yaml
+    serviceCode:
+      name: serviceCode
+      in: path
+      required: true
+      description: Provider service code
+      schema:
+        type: string
+        minLength: 1
+        example: HEM
+      
+ # parameters/subscriptionId.yaml
+    subscriptionId:
+      name: subscriptionId
+      in: path
+      required: true
+      description: Id of an existing subscription
+      schema:
+        type: string
+        minLength: 1
+        example: 03c7c61f-a380-4f43-8e65-d2bea3159588
+      
+ # parameters/testCode.yaml
+    testCode:
+      name: testCode
+      in: path
+      required: true
+      description: Test code
+      schema:
+        type: string
+        minLength: 1
+        example: HEM
+      
+ # parameters/userId.yaml
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Id of an existing user.
+      schema:
+        type: integer
+  requestBodies:
+ # requestBodies/EventAcknowledge.yaml
+    EventAcknowledge:
+      description: Max event sequence number to acknowledge.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              Max event sequence number to acknowledge.
+              If not specified, the last event will be acknowledged.
+            properties:
+              seq:
+                type: integer
+                description: Max event sequence number to acknowledge.
+                example: 125
+      
+ # requestBodies/EventSubscriptionCreateBody.yaml
+    EventSubscriptionCreateBody:
+      description: |
+          Create a new event subscription.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EventSubscription'
+      
+ # requestBodies/OrderCreateBody.yaml
+    OrderCreateBody:
+      description: Create an order request body
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+      
+      
+ # requestBodies/OrganizationCreateBody.yaml
+    OrganizationCreateBody:
+      description: Create Organization request body
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Organization'
+      
+ # requestBodies/OrganizationMemberCreateBody.yaml
+    OrganizationMemberCreateBody:
+      description: Add member to an organization body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              userId:
+                type: string
+                description: User ID
+                example: 5f3d6c8b-b8b3-4b8f-a8d6-8f8c9d8f8d8d
+            required:
+              - userId
+      
+ # requestBodies/PracticeCreateBody.yaml
+    PracticeCreateBody:
+      description: Create a new practice request body
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the practice
+                example: "My Practice"
+              identifier:
+                type: array
+                description: |
+                  Business or system (not resource) identifiers.
+                items:
+                  $ref: '#/components/schemas/Identifier'
+            required:
+              - name
+    
+      
+ # requestBodies/TestCodes.yaml
+    TestCodes:
+      description: Array of test code objects
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            description: 'Array of unique test codes'
+            minItems: 1
+            uniqueItems: true
+            items:
+              $ref: '#/components/schemas/TestCode'
+      
+ # requestBodies/UserCredentialsBody.yaml
+    UserCredentialsBody:
+      description: Update user credentials request body
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+                format: password
+            required:
+              - email
+              - password
+          examples:
+            Create User Alice Smith:
+              $ref: '#/components/examples/UserCredentials'
+      
+ # requestBodies/UserPasswordBody.yaml
+    UserPasswordBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              password:
+                type: string
+                format: password
+                example: NewPassword
+            required:
+              - password
+          examples:
+            Update User password:
+              value:
+                password: NewPassword
+      
+  responses:
+ # responses/202Accepted.yaml
+    202Accepted:
+      description: Accepted
+      
+ # responses/400BadRequest.yaml
+    400BadRequest:
+      description: |
+        **Bad Request**
+        
+        The server cannot or will not process the request due to something that is perceived to be a client error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 400
+            error: BadRequest
+            message:
+              - 'Missing required field: name'
+              - 'Missing required field: email'
+      
+ # responses/401Unauthorized.yaml
+    401Unauthorized:
+      description: |
+        **Unauthorized**
+        
+        The client request has not been completed because it lacks valid authentication credentials for the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 401
+            error: Unauthorized
+            message:
+              - 'Missing ''Authorization'' header'
+      
+ # responses/403Forbidden.yaml
+    403Forbidden:
+      description: |
+        **Forbidden**
+        
+        The server understands the request but refuses to authorize it.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 403
+            error: Forbidden
+            message:
+              - 'User ''read-only'' not authorized to create orders'
+      
+ # responses/404NotFound.yaml
+    404NotFound:
+      description: |
+        **Not Found**
+        
+        The server cannot find the requested resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 404
+            error: Not Found
+            message: The requested resource was not found.
+      
+ # responses/409Conflict.yaml
+    409Conflict:
+      description: |
+        **Conflict**
+        
+        Request conflict with the current state of the target resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            error: Conflict
+            message:
+              - 'Email already taken'
+      
+ # responses/AuthTokenIssued.yaml
+    AuthTokenIssued:
+      description: Auth token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: '#/components/schemas/User'
+              token:
+                type: string
+                description: The JWT token used to authenticate the user.
+                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+      
+ # responses/BreedsList.yaml
+    BreedsList:
+      description: Breeds list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReferenceDataBreed'
+              hash:
+                type: string
+                description: Breed list hash
+                example: 8f60c8102d29fcd525162d02eed4566b
+      
+ # responses/EventFound.yaml
+    EventFound:
+      description: Event Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Event'
+      
+ # responses/EventList.yaml
+    EventList:
+      description: Event List
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Event'
+      
+ # responses/EventSubscriptionCreated.yaml
+    EventSubscriptionCreated:
+      description: |
+          EventSubscription Created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EventSubscription'
+      
+ # responses/EventSubscriptionFound.yaml
+    EventSubscriptionFound:
+      description: |
+        EventSubscription Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EventSubscription'
+      
+ # responses/EventSubscriptionList.yaml
+    EventSubscriptionList:
+      description: Event Subscription List
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/EventSubscription'
+      
+ # responses/HealthCheck.yaml
+    HealthCheck:
+      description: Health Check
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - ok
+                  - error
+                  - shutting_down
+                example: ok
+                description: |
+                  If all health indicators pass the status will be `ok`, if any is failing then `error` and if the application is shutting down but still accepting requests then `shutting_down`.
+              info:
+                type: object
+                description: |
+                  Object containing information of each health indicator.
+                properties:
+                  database:
+                    $ref: '#/components/schemas/HealthInfo'
+                  mongo:
+                    $ref: '#/components/schemas/HealthInfo'
+                  activemq:
+                    $ref: '#/components/schemas/HealthInfo'
+              error:
+                  type: object
+                  description: |
+                      Object containing error information of each health indicator.
+                  properties:
+                    database:
+                      $ref: '#/components/schemas/HealthError'
+                    mongo:
+                      $ref: '#/components/schemas/HealthError'
+                    activemq:
+                      $ref: '#/components/schemas/HealthError'
+              details:
+                type: object
+                description: |
+                  Object containing detailed information of each health indicator.
+                properties:
+                  database:
+                    $ref: '#/components/schemas/HealthDetails'
+                  mongo:
+                    $ref: '#/components/schemas/HealthDetails'
+                  activemq:
+                    $ref: '#/components/schemas/HealthDetails'
+      
+ # responses/IntegrationCreated.yaml
+    IntegrationCreated:
+      description: Integration Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IntegrationDescription'
+      
+ # responses/IntegrationDetails.yaml
+    IntegrationDetails:
+      description: Integration Details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Integration'
+      
+ # responses/IntegrationList.yaml
+    IntegrationList:
+      description: Integrations list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Integration'
+      
+ # responses/OrderCreated.yaml
+    OrderCreated:
+      description: Order Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+      
+ # responses/OrderFound.yaml
+    OrderFound:
+      description: Order Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+      
+ # responses/OrderList.yaml
+    OrderList:
+      description: Orders list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Order'
+      
+ # responses/OrderManifest.yaml
+    OrderManifest:
+      description: Order Manifest
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Attachment'
+          example:
+            $ref: '#/components/responses./examples/Attachment'
+      
+ # responses/OrderReport.yaml
+    OrderReport:
+      description: Order Report
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Report'
+          example:
+            $ref: '#/components/responses./examples/Report.yaml#/Hematology'
+      
+ # responses/OrganizationCreated.yaml
+    OrganizationCreated:
+      description: Organization Created
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Organization'
+              - type: object
+                properties:
+                  owner:
+                    description: Owner of the organization.
+                    readOnly: true
+                    allOf:
+                      - $ref: '#/components/schemas/User'
+      
+ # responses/OrganizationDetails.yaml
+    OrganizationDetails:
+      description: Organization Details
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Organization'
+              - type: object
+                properties:
+                  owner:
+                    description: Owner of the organization.
+                    readOnly: true
+                    allOf:
+                      - $ref: '#/components/schemas/User'
+                  members:
+                    type: array
+                    description: Members of the organization
+                    readOnly: true
+                    items:
+                      $ref: '#/components/schemas/User'
+                  practices:
+                    type: array
+                    description: Practices owned by the organization.
+                    readOnly: true
+                    items:
+                      $ref: '#/components/schemas/Practice'
+                  providerConfigurations:
+                    type: array
+                    description: Provider configurations managed by the organization.
+                    readOnly: true
+                    items:
+                      $ref: '#/components/schemas/ProviderConfiguration'
+      
+ # responses/OrganizationKeysFound.yaml
+    OrganizationKeysFound:
+      description: Organization Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrganizationApiKeys'
+      
+ # responses/PracticeCreated.yaml
+    PracticeCreated:
+      description: Practice Created
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Practice'
+              - type: object
+                properties:
+                  organization:
+                    description: The organization that the practice belongs to
+                    allOf:
+                      - $ref: '#/components/schemas/Organization'
+                  integrations:
+                    type: array
+                    description: The integrations that are associated with the practice
+                    items:
+                      $ref: '#/components/schemas/Integration'
+      
+ # responses/PracticeDetails.yaml
+    PracticeDetails:
+      description: Practice Details
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Practice'
+              - type: object
+                properties:
+                  integrations:
+                    type: array
+                    description: The integrations that are associated with the practice
+                    items:
+                        $ref: '#/components/schemas/Integration'
+      
+ # responses/PracticeList.yaml
+    PracticeList:
+      description: Practice List
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              allOf:
+                - $ref: '#/components/schemas/Practice'
+                - type: object
+                  properties:
+                    integrations:
+                      type: array
+                      description: The integrations that are associated with the practice
+                      items:
+                        $ref: '#/components/schemas/Integration'
+      
+ # responses/ProviderConfigurationCreated.yaml
+    ProviderConfigurationCreated:
+      description: Provider Configuration Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProviderConfiguration'
+      
+ # responses/ProviderConfigurationFound.yaml
+    ProviderConfigurationFound:
+      description: Provider Configuration Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProviderConfiguration'
+      
+ # responses/ProviderConfigurationList.yaml
+    ProviderConfigurationList:
+      description: Provider configurations list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProviderConfiguration'
+      
+ # responses/ProviderDeviceList.yaml
+    ProviderDeviceList:
+      description: Provider device list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProviderDevice'
+      
+ # responses/ProviderFound.yaml
+    ProviderFound:
+      description: Provider Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Provider'
+      
+ # responses/ProviderList.yaml
+    ProviderList:
+      description: Provider List
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Provider'
+      
+ # responses/ReportFound.yaml
+    ReportFound:
+      description: Report Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Report'
+          examples:
+            Urinalysis:
+              $ref: '#/components/responses./examples/Report.yaml#/Urinalysis'
+            Hematology:
+              $ref: '#/components/responses./examples/Report.yaml#/Hematology'
+            Chemistry:
+              $ref: '#/components/responses./examples/Report.yaml#/Chemistry'
+            Screening:
+              $ref: '#/components/responses./examples/Report.yaml#/Screening'
+      
+ # responses/Service.yaml
+    Service:
+      description: Provider service list
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Service'
+      
+ # responses/ServiceList.yaml
+    ServiceList:
+      description: Provider service list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Service'
+      
+ # responses/SexesList.yaml
+    SexesList:
+      description: Sexes list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReferenceDataSex'
+              hash:
+                type: string
+                description: Sex list hash
+                example: 3691308f2a4c2f6983f2880d32e29c84
+      
+ # responses/SpeciesList.yaml
+    SpeciesList:
+      description: Species list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReferenceDataSpecies'
+              hash:
+                type: string
+                description: Species list hash
+                example: 9f6e6800cfae7749eb6c486619254b9c
+      
+ # responses/UserCreated.yaml
+    UserCreated:
+      description: User Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+          examples:
+            Example User:
+              $ref: '#/components/responses./examples/User'
+ # responses/UserDetails.yaml
+    UserDetails:
+      description: User Details
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/User'
+              - type: object
+                properties:
+                  organization:
+                    description: The organization owned by the user.
+                    allOf:
+                        - $ref: '#/components/schemas/Organization'
+      
+      
+ # responses/UserList.yaml
+    UserList:
+      description: User List
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+      
+  schemas:
+ # schemas/Client.yaml
+    Client:
+      title: Client
+      type: object
+      description: |
+        The client of the order. Usually the pet owner.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the client.
+          readOnly: true
+          example: 11bd1e6c-2a94-418c-8c2a-3b059f1cb138
+        firstName:
+          type: string
+          description: The first name of the client.
+          example: John
+        lastName:
+          type: string
+          description: The last name of the client.
+          example: Smith
+        identifier:
+          type: array
+          description: |
+            Business or system (not resource) identifiers.
+          items:
+            $ref: '#/components/schemas/Identifier'
+        contact:
+          description: The contact details for the client.
+          allOf:
+            - $ref: '#/components/schemas/Contact'
+        address:
+          description: The address of the client.
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        isDoctor:
+          type: boolean
+          description: Whether the client is a doctor.
+          example: true
+        isStaff:
+          type: boolean
+          description: Whether the client is a staff member.
+          example: false
+      required:
+        - id
+      
+ # schemas/ConfigurationOption.yaml
+    ConfigurationOption:
+      title: ConfigurationOption
+      type: object
+      description: A configurable option for a provider.
+      properties:
+        type:
+          type: string
+          description: The type of the option.
+          enum:
+            - string
+            - boolean
+            - integer
+          example: string
+        name:
+          type: string
+          description: The name of the option.
+          minLength: 1
+          example: url
+        description:
+          type: string
+          description: The description of the option.
+          minLength: 1
+          example: The base URL of the provider.
+        required:
+          type: boolean
+          description: Whether the option is required.
+          example: true
+      required:
+        - type
+        - name
+        - required
+    
+ # schemas/Event.yaml
+    Event:
+      title: Event
+      description: |
+        Events related to orders and results
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the event.
+          readOnly: true
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        seq:
+          type: integer
+          description: Incremental sequence number of the event.
+          readOnly: true
+          example: 125
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the event was created
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        type:
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/EventType'
+        integrationId:
+          type: string
+          description: The integration that generated the event
+          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+          readOnly: true
+        data:
+          description: The data associated with the event.
+          oneOf:
+            - $ref: '#/components/schemas/PayloadOrderCreated'
+            - $ref: '#/components/schemas/PayloadOrderUpdated'
+            - $ref: '#/components/schemas/PayloadOrderResults'
+            - $ref: '#/components/schemas/PayloadReportCreated'
+            - $ref: '#/components/schemas/PayloadReportUpdated'
+      required:
+        - id
+        - seq
+        - time
+        - type
+      
+ # schemas/EventSubscription.yaml
+    EventSubscription:
+      title: EventSubscription
+      description: |
+        Event subscriptions allow your application to get notified of events that occur in the broker. See [Event Subscriptions](/docs/dmi/events#event-subscriptions) in the API Reference for more information.
+        
+        ### Supported subscription types
+        
+        **Azure Event Hubs**
+        
+        Use the `azure_event_hubs` subscription type create ab Azure Event Hubs subscription and receive event messages to your hub/namesapce.
+      type: object
+      properties:
+        id:
+          description: The id of the event subscription.
+          type: string
+          format: uuid
+          readOnly: true
+          example: 5e4381ce-915f-46a2-b50e-559721924ee5
+        event_type:
+          $ref: '#/components/schemas/EventType'
+        subscription_type:
+          $ref: '#/components/schemas/EventSubscriptionType'
+        subscription_options:
+          $ref: '#/components/schemas/EventSubscriptionOptions'
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the subscription was created.
+          readOnly: true
+          example: '2020-01-01T00:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the subscription was updated.
+          readOnly: true
+          example: '2020-02-01T00:00:00.000Z'
+      required:
+        - id
+        - event_type
+        - subscription_type
+        - subscription_options
+      
+ # schemas/EventSubscriptionType.yaml
+    EventSubscriptionType:
+      description: |
+        The type of subscription. See [Event Subscriptions](/docs/dmi/events#event-subscriptions) in the API Reference for more information.
+        
+        Currently only Azure Event Hubs subscriptions are supported.
+      type: string
+      enum:
+        - azure-event-hubs
+      example: azure-event-hubs
+    EventSubscriptionOptions:
+        description: |
+          Options for the subscription.
+        oneOf:
+          - $ref: '#/AzureEventHubsSubscriptionOptions'
+        example:
+          hub_namespace: my-namespace
+          hub_name: my-event-hub
+          sa_key_name: my-key-name
+          sa_key_value: my-key-value
+    AzureEventHubsSubscriptionOptions:
+        description: |
+          Options for the Azure Events Hub subscription:
+          
+          * `hub_namespace`: The namespace of the event hub.
+          * `hub_name`: The name of the event hub.
+          * `sa_key_name`: The shared access key name.
+          * `sa_key_value`:  The shared access key value.
+        type: object
+        properties:
+          hub_name:
+            type: string
+            description: The name of the event hub.
+            example: event-hub-name
+          hub_namespace:
+            type: string
+            description: The namespace of the event hub.
+            example: event-hub-namespace
+          sa_key_name:
+            type: string
+            description: The shared key name.
+            example: event-hub-key-name
+          sa_key_value:
+            type: string
+            description: The shared key value.
+            example: event-hub-key-value
+        required:
+          - hub_name
+          - hub_namespace
+          - sa_key_name
+          - sa_key_value
+    
+ # schemas/EventType.yaml
+    EventType:
+      description: |
+        The type of event. See [Event Types](/docs/dmi/events#event-types) in the API Reference for more details.
+        
+        - `order:created` — An order is created.
+        - `order:updated` — An order is updated.
+        - `order:results` — Results are added or modified to an existing order.
+        - `report:created` — A report is created.
+        - `report:updated` — A report is updated.
+      type: string
+      enum:
+        - 'order:created'
+        - 'order:updated'
+        - 'order:results'
+        - 'report:created'
+        - 'report:updated'
+      example: 'order:created'
+    PayloadOrderCreated:
+      title: order:created
+      description: |
+          The data sent in the `order:created` event.
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: The ID of the order.
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        order:
+          $ref: '#/components/schemas/Order'
+        practice:
+          $ref: '#/components/schemas/Practice'
+    PayloadOrderUpdated:
+      title: order:updated
+      description: |
+        The data sent in the `order:updated` event.
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: The ID of the order.
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        status:
+          type: string
+          description: The updated status of the order.
+        order:
+          $ref: '#/components/schemas/Order'
+        practice:
+          $ref: '#/components/schemas/Practice'
+    PayloadOrderResults:
+      title: order:results
+      description: |
+        The data sent in the `order:results` event.
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: The ID of the order.
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        order:
+          $ref: '#/components/schemas/Order'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResult'
+        practice:
+          $ref: '#/components/schemas/Practice'
+    PayloadReportCreated:
+      title: report:created
+      description: |
+        The data sent in the `report:created` event.
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: The order ID associated with the report.
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        order:
+          $ref: '#/components/schemas/Order'
+        report:
+          $ref: '#/components/schemas/Report'
+        practice:
+          $ref: '#/components/schemas/Practice'
+    PayloadReportUpdated:
+      title: report:updated
+      description: |
+        The data sent in the `report:updated` event.
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: The order ID associated with the report.
+          example: 6c25928f-daa7-4dbb-94de-8ad72f0b107f
+        order:
+          $ref: '#/components/schemas/Order'
+        report:
+          $ref: '#/components/schemas/Report'
+        practice:
+          $ref: '#/components/schemas/Practice'
+    
+ # schemas/Integration.yaml
+    Integration:
+      title: Integration
+      description: Integration between a practice and a provider
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the integration.
+          readOnly: true
+          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+        status:
+          type: string
+          description: The status of the integration.
+          enum:
+            - RUNNING
+            - STOPPED
+          example: RUNNING
+        integrationOptions:
+          description: The provider-specific integration options.
+          anyOf:
+            - $ref: '#/components/schemas./providers/DemoProvider.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Antech.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Idexx.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Zoetis.yaml#/IntegrationOptions'
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the integration was created.
+          readOnly: true
+          example: '2020-01-01T00:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the integration was updated.
+          readOnly: true
+          example: '2020-01-01T00:00:00.000Z'
+        practice:
+          description: The practice of the integration.
+          allOf:
+            - $ref: '#/components/schemas/Practice'
+        providerConfiguration:
+          description: The provider configuration of the integration.
+          allOf:
+            - $ref: '#/components/schemas/ProviderConfiguration'
+      
+ # schemas/IntegrationDescription.yaml
+    IntegrationDescription:
+      title: IntegrationDescription
+      description: Integration description
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the integration.
+          readOnly: true
+          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+        practiceId:
+          type: string
+          format: uuid
+          readOnly: true
+          example: 94f9bdb8-c6f2-4970-8b56-0a2de1fe62e1
+        providerConfigurationId:
+          type: string
+          format: uuid
+          readOnly: true
+          example: 0e0f3afe-9796-4ef1-adeb-92f736e8617f
+        integrationOptions:
+          description: The provider-specific integration options.
+          anyOf:
+            - $ref: '#/components/schemas./providers/DemoProvider.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Antech.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Idexx.yaml#/IntegrationOptions'
+            - $ref: '#/components/schemas./providers/Zoetis.yaml#/IntegrationOptions'
+      
+ # schemas/Observation.yaml
+    Observation:
+      title: Observation
+      description: |
+        Laboratory and clinical or diagnostic data for patients and/or specimens derived from these.
+      type: object
+      properties:
+        code:
+          type: string
+          description: Analyte code
+          example: HEM
+        name:
+          type: string
+          description: Analyte name
+          example: Hemoglobin
+        status:
+          type: string
+          description: |
+            Status of the test result.
+            
+            - `PENDING` — Measurement has not been performed by the analyzer yet
+            - `DONE` — The analyzer has performed the measurement
+            - `CANCELLED` — The measurement has been cancelled
+          enum:
+            - PENDING
+            - DONE
+            - CANCELLED
+          example: DONE
+        valueString:
+          type: string
+          description: Text value of the result
+          example: Visible
+        valueQuantity:
+          type: object
+          description: Numerical value of the result
+          properties:
+            value:
+              type: number
+              description: Numerical value of the result
+              example: 10.0
+            unit:
+              type: string
+              description: Unit of the result value
+              example: g/dL
+        media:
+          type: array
+          description: |
+            Visual representations of the observation.
+          items:
+            $ref: '#/components/schemas/Attachment'
+        interpretation:
+          type: object
+          description: |
+            Interpretation of the result value in the context of the reference ranges. Possible interpretation codes are:
+            
+            - N — Normal
+            - A — Abnormal
+            - LL — Critical low
+            - L — Low
+            - H — High
+            - HH — Critical high
+          properties:
+            code:
+              type: string
+              description: Code of the interpretation
+              example: N
+              enum:
+                - N
+                - A
+                - LL
+                - L
+                - H
+                - HH
+            text:
+              type: string
+              description: Text of the interpretation, as received from the diagnostic provider.
+              example: Normal
+        referenceRange:
+          type: array
+          description: Reference ranges of the test
+          items:
+            $ref: '#/components/schemas/ReferenceRange'
+        notes:
+          type: string
+          description: Notes about the result
+          example: Measurement was performed in a non-sterile environment
+      required:
+        - code
+        - name
+        - status
+      
+ # schemas/Order.yaml
+    Order:
+      title: Order
+      type: object
+      description: |
+        Requisition for a set of test to be performed on a patient.
+        
+        Desired test codes and target devices should be specified in the order, along with the patient, client and veterinarian details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the order.
+          readOnly: true
+          example: 74c7cac2-0bd5-4e56-b114-f088a502dc6a
+        requisitionId:
+          type: string
+          description: |
+            The original requisition identifier provided by the PIMS.
+            
+            This could be used by the PIMS to match the order to the original requisition.
+          example: ABC-87436384
+        accessionId:
+          type: string
+          description: |
+            The accession identifier provided by the provider.
+            
+            The identifier assigned to the order by the provider. This could be used by the PIMS to match the order to the original requisition in the provider's system.
+          readOnly: true
+          example: 8279820
+        integrationId:
+          type: string
+          format: uuid
+          description: The unique identifier of the integration.
+          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
+        manifest:
+          description: The provider-generated manifest (usually a PDF) that accompanies specimens to the lab.
+          readOnly: true
+          allOf:
+            - $ref: '#/components/schemas/Attachment'
+          example:
+            contentType: application/pdf
+            uri: http://example.com/path/to/manifest.pdf
+        submissionUri:
+          type: string
+          format: uri
+          readOnly: true
+          description: |
+            The URL of the provider's UI to complete the order submission.
+            
+            This usually will be an iFrame containing a form.
+        status:
+          type: string
+          description: |
+            The status of the order. See [Order Status](/docs/dmi/orders#order-status) in the API Reference for more information.
+            
+            - `ACCEPTED` - The order is accepted and exists in Nominal’s domain.
+            - `WAITING_FOR_INPUT` - The provider requires user input before it can be submitted.
+            - `SUBMITTED` - The order has been submitted to the provider.
+            - `PARTIAL` - Some tests are completed and are available.
+            - `COMPLETED` - All tests in the order have been completed and are available.
+            - `CANCELLED` - The order is cancelled and won’t be processed by the provider.
+            - `ERROR` - The order is in error and has been withdrawn.
+      
+          enum:
+            - ACCEPTED
+            - WAITING_FOR_INPUT
+            - SUBMITTED
+            - PARTIAL
+            - COMPLETED
+            - CANCELLED
+            - ERROR
+          readOnly: true
+          example: COMPLETED
+        patient:
+          description: The subject the tests are ordered for.
+          allOf:
+            - $ref: '#/components/schemas/Patient'
+        client:
+          description: The client of the order. Usually the pet owner.
+          allOf:
+            - $ref: '#/components/schemas/Client'
+        veterinarian:
+          description: The veterinarian requesting the order.
+          allOf:
+            - $ref: '#/components/schemas/Veterinarian'
+        testCodes:
+          type: array
+          description: |
+            The test codes to be ordered.
+          items:
+            $ref: '#/components/schemas/TestCode'
+        devices:
+          type: array
+          description: The list of desired device IDs.
+          items:
+            type: string
+          example:
+            - IVLS
+        technician:
+          type: string
+          description: The name of the practicing technician.
+          example: Dr. Doolittle
+        notes:
+          type: string
+          description: Notes to include with the order.
+          example: This is a note.
+        labRequisitionInfo:
+          description: |
+            Additional parameters required by the provider. See [Lab Requisition Information](/docs/dmi/orders#lab-requisition-information) for more information.
+          type: object
+          additionalProperties: true
+          example:
+            IsSpecialStaining: true
+        editable:
+          type: boolean
+          description: Whether tests can be added or removed from this order.
+          readOnly: true
+          example: true
+      required:
+        - id
+        - integrationId
+        - status
+        - patient
+      
+ # schemas/Organization.yaml
+    Organization:
+      title: Organization
+      description: Organization
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the organization.
+          readOnly: true
+          example: ee2befeb-ff19-4088-a5eb-45ea15430c16
+        name:
+          type: string
+          description: Name of the organization.
+          example: My Organization
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the organization was created
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the organization was updated
+          readOnly: true
+          example: 2020-02-01T00:00:00.000Z
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+      
+ # schemas/OrganizationApiKeys.yaml
+    OrganizationApiKeys:
+      title: OrganizationApiKeys
+      description: Organization production and test API keys.
+      type: object
+      properties:
+        prodKey:
+          type: string
+          description: Production API key for the organization.
+          readOnly: true
+          example: uri0IBNQp6bTj8hI1bUQWSNRLHUY1obbewqU
+        testKey:
+          type: string
+          description: Test API key for the organization.
+          readOnly: true
+          example: mMIHYAWLOxAQbQI1F5vGosx6Roc6mcJ3iO2A
+      required:
+        - prodKey
+        - testKey
+      
+ # schemas/Patient.yaml
+    Patient:
+      title: Patient
+      type: object
+      description: |
+        The subject of the ordered tests
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the order.
+          readOnly: true
+          example: 74c7cac2-0bd5-4e56-b114-f088a502dc6a
+        name:
+          type: string
+          description: The name of the patient.
+          example: Laika
+        identifier:
+          type: array
+          description: |
+            Business or system (not resource) identifiers.
+          items:
+            $ref: '#/components/schemas/Identifier'
+        sex:
+          type: string
+          description: |
+            The sex code. See [Sexes](/docs/dmi/reference-data#sexes) in the API Reference.
+          example: MALE
+        species:
+          type: string
+          description: |
+            The species code. See [Species](/docs/dmi/reference-data#species) in the API Reference.
+          example: CANIS_LUPUS_FAMILIARIS
+        breed:
+          type: string
+          description: |
+            The breed code. See [Breeds](/docs/dmi/reference-data#breeds) in the API Reference.
+          example: JACK_RUSSEL_TERRIER
+        birthdate:
+          type: string
+          description: Birth date in `YYYY-MM-DD` format.
+          example: 2011-05-14
+        weight:
+          type: object
+          properties:
+            measurement:
+              type: number
+              minimum: 0
+              description: Measured amount.
+              example: 10.5
+            units:
+              type: string
+              description: The units of the measurement.
+              enum:
+                - KG
+                - LBS
+              example: KG
+      required:
+        - id
+        - name
+      
+ # schemas/Practice.yaml
+    Practice:
+      title: Practice
+      type: object
+      description: A practice of an organization
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the practice.
+          readOnly: true
+          example: 94f9bdb8-c6f2-4970-8b56-0a2de1fe62e1
+        name:
+          type: string
+          description: Name of the practice.
+          example: My Practice
+        identifier:
+          type: array
+          description: |
+            Business or system (not resource) identifiers.
+          items:
+            $ref: '#/components/schemas/Identifier'
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the practice was created.
+          readOnly: true
+          example: '2020-01-01T00:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the practice was updated.
+          readOnly: true
+          example: '2020-02-01T00:00:00.000Z'
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+      
+ # schemas/Provider.yaml
+    Provider:
+      title: Provider
+      type: object
+      description: A diagnostic provider
+      properties:
+        id:
+          type: string
+          description: The provider slug
+          minLength: 1
+          example: demo
+        description:
+          type: string
+          description: The description of the provider
+          minLength: 1
+          example: Demo provider
+        configurationUri:
+          type: string
+          description: The URI to the provider's configuration resource
+          minLength: 1
+          example: /providers/demo/configuration
+        configurationOptions:
+          type: array
+          description: The configuration options for the provider
+          items:
+            $ref: '#/components/schemas/ConfigurationOption'
+          example:
+            - type: string
+              name: url
+              description: The URL of the provider
+              required: true
+            - type: string
+              name: partnerId
+              description: The partner ID for the provider
+              required: true
+            - type: string
+              name: partnerToken
+              description: The partner token for the provider
+              required: true
+        integrationOptions:
+          type: array
+          description: The integration options for the provider
+          items:
+            $ref: '#/components/schemas/ConfigurationOption'
+          example:
+            - type: string
+              name: clientId
+              description: The client ID for the provider
+              required: true
+      
+ # schemas/ProviderConfiguration.yaml
+    ProviderConfiguration:
+      title: ProviderConfiguration
+      type: object
+      description: Instance of a configuration for a diagnostic provider.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the provider configuration.
+          readOnly: true
+          example: 0e0f3afe-9796-4ef1-adeb-92f736e8617f
+        providerId:
+          type: string
+          description: The unique identifier of the provider.
+          readOnly: true
+          example: demo
+        configurationOptions:
+          description: The provider-specific configuration object.
+          oneOf:
+            - $ref: '#/components/schemas./providers/Antech.yaml#/Configuration'
+            - $ref: '#/components/schemas./providers/Idexx.yaml#/Configuration'
+            - $ref: '#/components/schemas./providers/Zoetis.yaml#/Configuration'
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the provider configuration was created
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the provider configuration was created
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+      
+ # schemas/ProviderDevice.yaml
+    ProviderDevice:
+      title: Provider Device
+      description: A diagnostic device for a provider
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the device
+          example: IVLS
+        status:
+          type: string
+          description: The status of the device
+          enum:
+            - ACTIVE
+            - INACTIVE
+          example: ACTIVE
+        serialNumber:
+          type: string
+          description: The serial number of the device
+          example: ABCDEF123456
+        tests:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/TestCode'
+      
+ # schemas/ProviderLabRequisitionParameter.yaml
+    ProviderLabRequisitionParameter:
+      title: ProviderLabRequisitionParameter
+      description: Lab requisition information parameter description.
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The name of the lab requisition parameter property.
+          example: IsSpecialStaining
+        type:
+          type: string
+          minLength: 1
+          description: The type of the lab requisition parameter property.
+          enum:
+            - boolean
+            - string
+            - number
+          example: boolean
+        required:
+          type: boolean
+          description: Whether the lab requisition parameter is required.
+          example: true
+      required:
+        - name
+        - type
+      
+ # schemas/ReferenceData.yaml
+    # ReferenceData:
+    ReferenceDataSex:
+        title: Sex
+        description: Sex
+        type: object
+        properties:
+          code:
+            type: string
+            description: Sex code
+            example: MALE
+          name:
+            type: string
+            description: Sex name
+            example: Male
+        required:
+          - code
+          - name
+    ReferenceDataSpecies:
+        title: Species
+        description: Species
+        type: object
+        properties:
+          code:
+            type: string
+            description: Species code
+            example: CANIS_FAMILIARIS
+          name:
+            type: string
+            description: Species name
+            example: Canis familiaris
+        required:
+          - code
+          - name
+    ReferenceDataBreed:
+        title: Breed
+        description: Breed
+        type: object
+        properties:
+          code:
+            type: string
+            description: Breed code
+            example: TERRIER
+          name:
+            type: string
+            description: Species name
+            example: Terrier
+          species:
+            type: string
+            description: Species code
+            example: CANIS_FAMILIARIS
+        required:
+          - code
+          - name
+      
+ # schemas/ReferenceRange.yaml
+    ReferenceRange:
+      title: ReferenceRange
+      type: object
+      description: |
+        A reference range, set of ordered low and high values by a clinician.
+      properties:
+        type:
+          type: string
+          description: Type of reference range
+          enum:
+            - NORMAL
+            - CRITICAL
+          example: NORMAL
+        text:
+          type: string
+          description: Text based reference range.
+          example: Red
+        low:
+          type: number
+          description: Low range, if relevant.
+          example: 5.0
+        high:
+          type: number
+          description: High range, if relevant.
+          example: 20.0
+    
+ # schemas/Report.yaml
+    Report:
+      title: Report
+      description: |
+        The findings and interpretations of diagnostic tests performed on patients, and/or specimens derived from these.
+        
+        Reports contain an array of results that group clinical observations into test results as requested in an order, or with a meaningful logical grouping.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: |
+            The unique identifier of the report.
+          readOnly: true
+          example: 3025460e-7606-4643-a1ff-47c732e8ab20
+        orderId:
+          type: string
+          format: uuid
+          description: |
+            The unique identifier of the order that generated the report.
+          readOnly: true
+          example: 74c7cac2-0bd5-4e56-b114-f088a502dc6a
+        status:
+          type: string
+          description: |
+            The status of the report.
+            
+            - `REGISTERED` — The existence of the report is registered, but there is not results available yet. 
+            - `PARTIAL` — Some of the tests in the report are completed, data in the report may be incomplete.
+            - `FINAL` — All of the tests in the report are completed, the report is complete and verified.
+            - `CANCELLED` — The tests were cancelled and the report will not be available.
+          enum:
+            - REGISTERED
+            - PARTIAL
+            - FINAL
+            - CANCELLED
+          example: FINAL
+        createdAt:
+          type: string
+          format: date-time
+          description: |
+            The datetime that the result was created.
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: |
+            The datetime that the result was updated
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        patient:
+          $ref: '#/components/schemas/Patient'
+        testResultsSet:
+          type: array
+          description: |
+            Array of test results as requested in the order.
+          items:
+            $ref: '#/components/schemas/TestResult'
+        presentedForm:
+          type: array
+          description: |
+            Rich text representation of the entire result as issued by the diagnostic service. 
+            
+            Multiple formats are allowed but they shall be semantically equivalent.
+          items:
+            $ref: '#/components/schemas/Attachment'
+      required:
+        - id
+        - orderId
+        - status
+        - createdAt
+        - updatedAt
+      
+ # schemas/Service.yaml
+    Service:
+      title: Service
+      description: Service offered by a provider
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: The orderable service code.
+          example: HEM
+        name:
+          type: string
+          minLength: 1
+          description: The service name.
+          example: Hematology
+        description:
+          type: string
+          minLength: 1
+          description: The service description.
+          example: This is a service of the hematology system.
+        category:
+          type: string
+          minLength: 1
+          description: The service category.
+          example: Chemistry
+        type:
+          $ref: '#/components/schemas/ServiceType'
+        price:
+          type: number
+          description: The price of the service, expressed in units of `currency`.
+          minimum: 0
+        currency:
+          type: string
+          minLength: 1
+          description: The [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) currency code for the service price.
+        labRequisitionInfo:
+          type: array
+          description: |
+            Extra requisition information required by the lab for this service.
+          items:
+            $ref: '#/components/schemas/ProviderLabRequisitionParameter'
+          example:
+            - name: IsSpecialStaining
+              type: boolean
+              required: true
+            - name: HistoSource
+              type: string
+              required: true
+      required:
+        - code
+        - name
+      
+ # schemas/TestCode.yaml
+    TestCode:
+      title: Test code
+      type: object
+      description: Test code object.
+      properties:
+        code:
+          type: string
+          example: HEM
+      required:
+        - code
+    
+ # schemas/TestResult.yaml
+    TestResult:
+      title: TestResult
+      description: |
+        A group of clinical observations that belong to a test suite or panel.
+      type: object
+      properties:
+        code:
+          type: string
+          description: The test code
+          example: HEM
+        name:
+          type: string
+          description: The test name
+          example: Hematology
+        status:
+          type: string
+          description: |
+            The status of the test result.
+            
+            - `PENDING` — No observations in the test have been performed yet.
+            - `PARTIAL` — Some observations in the test have been performed and their results available.
+            - `COMPLETED` — All of the observations in the test were performed and their results available. 
+            - `REVISED` — A change has been made to any observation that previously was DONE.
+            - `CANCELLED` — The test was cancelled and no observation will be performed.
+          enum:
+            - PENDING
+            - PARTIAL
+            - COMPLETED
+            - REVISED
+            - CANCELLED
+          example: COMPLETED
+        deviceId:
+          type: string
+          description: |
+            ID of the device used to generate the observation data.
+          example: 9M9051
+        notes:
+          type: string
+          description: Notes about the test
+          example: Patient has a history of cancer
+        observations:
+          type: array
+          description: |
+            The array of clinical observations for the test result.
+          items:
+            $ref: '#/components/schemas/Observation'
+          example:
+            name: Hemoglobin
+            code: HEM
+            status: DONE
+            valueQuantity:
+              value: 10.0
+              unit: g/dL
+            interpretation: Normal
+            referenceRange:
+              - type: NORMAL
+                text: Normal
+                low: 5.0
+                high: 20.0
+              - type: CRITICAL
+                text: Critical
+                low: 0.0
+                high: 5.0
+            notes: Measurement was performed in a non-sterile environment
+      required:
+        - code
+        - name
+        - status
+      
+ # schemas/User.yaml
+    User:
+      title: User
+      type: object
+      description: A user of the system
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the given user.
+          readOnly: true
+          example: 349c0069-a91b-4431-9782-252e46f20d1a
+        email:
+          type: string
+          format: email
+          example: alice.smith@gmail.com
+        createdAt:
+          type: string
+          format: date-time
+          description: The date that the user was updated
+          readOnly: true
+          example: 2020-01-01T00:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date that the user was updated
+          readOnly: true
+          example: 2020-02-01T00:00:00.000Z
+      required:
+        - id
+        - email
+        - password
+        - createdAt
+        - updatedAt
+      
+ # schemas/Veterinarian.yaml
+    Veterinarian:
+      title: Veterinarian
+      type: object
+      description: |
+        The veterinarian requesting the order.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the veterinarian.
+          readOnly: true
+          example: 5cd4983d-be3b-4bfc-a8a2-4371393f26c8
+        firstName:
+          type: string
+          description: The first name of the veterinarian.
+          example: John
+        lastName:
+          type: string
+          description: The last name of the veterinarian.
+          example: Doe
+        identifier:
+          type: array
+          description: |
+            Business or system (not resource) identifiers.
+          items:
+            $ref: '#/components/schemas/Identifier'
+        contact:
+          description: The contact details for the veterinarian.
+          allOf:
+              - $ref: '#/components/schemas/Contact'
+      required:
+        - id
+      
+ # types/Address.yaml
+    Address:
+      title: Address
+      type: object
+      description: An address expressed using postal conventions.
+      properties:
+        street:
+          type: string
+          description: Street name, number, direction & P.O. Box etc.
+          example: Frydenlundsvej 30
+        city:
+          type: string
+          description: Name of city, town etc.
+          example: Copenhagen
+        postalCode:
+          type: string
+          description: Postal code for area
+          example: 2950
+        country:
+          type: string
+          description: ISO 3166 2 letter country code.
+          example: DK
+      
+ # types/Attachment.yaml
+    Attachment:
+      title: Attachment
+      type: object
+      description: This type is for containing or referencing attachments - additional data content defined in other formats.
+      properties:
+        contentType:
+          type: string
+          description: |
+            Identifies the type of the data in the attachment and allows a method to be chosen to interpret or render the data. 
+            
+            Includes mime type parameters such as charset where appropriate.
+          example: image/jpeg
+        data:
+          type: string
+          format: byte
+          description: The actual data of the attachment - a sequence of bytes, base64 encoded.
+        uri:
+          type: string
+          format: uri
+          description: The URL where the data can be retrieved.
+      
+ # types/Contact.yaml
+    Contact:
+      title: Contact
+      type: object
+      description: Details for contact points for a person or organization.
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: hello@gmail.com
+        phone:
+          type: string
+          format: phone
+          description: Phone number
+          example: +1-555-555-5555
+      
+ # types/Error.yaml
+    Error:
+      title: Error
+      type: object
+      description: | 
+        This type is for representing errors and providing additional diagnostic messages.
+      properties:
+        statusCode:
+          type: integer
+          description: The status code of the error.
+          example: 400
+        message:
+          type: string
+          description: General message describing the error.
+          example: Bad Request
+        error:
+          type: array
+          description: |
+            A list of specific error messages that occurred during the request.
+          items:
+            type: string
+          example:
+            - 'Missing required field: name'
+            - 'Missing required field: email'
+        path:
+          type: string
+          description: |
+            The path of the request that caused the error.
+          example: /users
+        timestamp:
+          type: string
+          format: date-time
+          description: |
+            The timestamp of the error.
+          example: 2019-01-01T00:00:00.000Z
+        requestPayload:
+          type: object
+          description: |
+            The request payload sent to the provider that caused the error.
+          example:
+            corporateRequisitionId: VOY-001
+            veterinarian: Dr. John Doe
+            tests:
+              type: array
+              items:
+                type: string
+                example: "HEM"
+      required:
+        - statusCode
+        - message
+      
+ # types/Health.yaml
+    #Health:
+    HealthInfo:
+        type: object
+        properties:
+          status:
+            type: string
+            enum:
+              - up
+              - down
+            example: up
+            description: |
+              Health indicator which is of status `up`, or in other words "healthy", or `down`.
+    HealthError:
+        type: object
+        properties:
+          status:
+            type: string
+            example: down
+          message:
+            type: string
+            description: |
+              Error message of the health indicator.
+            example: Operations timed out after 500 milliseconds.
+    HealthDetails:
+        type: object
+        properties:
+          status:
+            type: string
+            enum:
+              - up
+              - down
+            example: down
+          message:
+            type: string
+      
+ # types/Identifier.yaml
+    Identifier:
+      title: Identifier
+      type: object
+      description: |
+        A numeric or alphanumeric string that is associated with a single object or entity within a given system. Typically, identifiers are used to connect content in resources to external content available in other systems.
+      properties:
+        system:
+          type: string
+          description: The namespace for the value
+          example: 'pims:interal-id'
+        value:
+          type: string
+          description: An unique value within the system.
+          example: b9316dd0-1d41-4fe8-b5fb-055d204bb8cb
+      
+ # types/ServiceType.yaml
+    ServiceType:
+      title: ServiceType
+      type: string
+      description: The service type.
+      enum:
+        - IN_HOUSE
+        - PAID
+      example: IN_HOUSE
+      
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+tags:
+  - name: Health
+  - name: Admin
+  - name: Users
+  - name: Organizations
+  - name: Practices
+  - name: Providers
+  - name: Integrations
+  - name: Directory of Services
+  - name: Reference Data
+  - name: Orders & Results
+  - name: Events
