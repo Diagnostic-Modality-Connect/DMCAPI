@@ -9,7 +9,8 @@ The Diagnostic Modality Connect API (DMCAPI) is a focused subset of the Diagnost
  *   Create and manage diagnostic orders
  *   Retrieve diagnostic results
  *   Manage event subscriptions related to diagnostics
- 
+
+ View the documentation at https://diagnostic-modality-connect.github.io/DMCAPI/
 
 Purpose
 -------
