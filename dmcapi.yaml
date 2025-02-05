@@ -3261,12 +3261,6 @@ components: # more componenets
 
 tags:
   - name: Health
-  - name: Admin
-  - name: Users
-  - name: Organizations
-  - name: Practices
-  - name: Providers
-  - name: Integrations
   - name: Directory of Services
   - name: Reference Data
   - name: Orders & Results
