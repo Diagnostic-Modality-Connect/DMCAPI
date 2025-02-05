@@ -1,24 +1,18 @@
 openapi: 3.0.0
-x-stoplight:
-  id: 545mk2dwwzqkv
+
 info:
-  title: DMI API
+  title: DMC API
   version: v1.0.0
   description: |
     # API Reference
-    The Diagnostic Modality Integrator API is organized around REST, has predictable resource-oriented URLs, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+    This is a subset of the API for the Diagnostic Modality Integrator ("DMI", https://github.com/nominal-systems/dmi), an open source connector for diagnositcs.
+
+    This API is intended to be compatible with the DMI, but to be consumed directly by providers and/or practices so it includes only the endpoints to interrogate services,
+    create and manage orders, retrieve results, and manage event subscriptions.  
     
-    You can use the DMI API is test mode (with the test API keys) which doesn't affect your real data or generates any real interaction with diagnostic modality providers.
-    
-    ## Authentication
-    The DMI API use API keys to authenticate requests for most operations. You can [view](https://nominal.stoplight.io/docs/dmi/856061bdc3bcf-get-organization-api-keys) and [regenerate](https://nominal.stoplight.io/docs/dmi/0284e6090ecf0-regenerate-organization-api-keys) your API keys using the Organization endpoints.
-    
-    Organization management is secured using the [JWT Bearer Auth](https://jwt.io/introduction), and users are provisioned by an admin user with server provided credentials using [HTTP Basic Auth](https://en.wikipedia.org/wiki/Basic_access_authentication).
 servers:
   - url: 'http://localhost:4010'
     description: Local Mock Server
-  - url: 'http://20.76.167.88'
-    description: Staging Server
 paths:
   /health:
     get:
@@ -791,27 +785,6 @@ components: # more componenets
             items:
               $ref: '#/components/schemas/TestCode'
       
- # requestBodies/UserCredentialsBody.yaml
-    UserCredentialsBody:
-      description: Update user credentials request body
-      required: true
-      content:
-        application/json:
-          schema:
-            properties:
-              email:
-                type: string
-                format: email
-              password:
-                type: string
-                format: password
-            required:
-              - email
-              - password
-          examples:
-            Create User Alice Smith:
-              $ref: '#/components/examples/UserCredentials'
-      
  # requestBodies/UserPasswordBody.yaml
     UserPasswordBody:
       content:
@@ -1044,31 +1017,6 @@ components: # more componenets
                   activemq:
                     $ref: '#/components/schemas/HealthDetails'
       
- # responses/IntegrationCreated.yaml
-    IntegrationCreated:
-      description: Integration Created
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/IntegrationDescription'
-      
- # responses/IntegrationDetails.yaml
-    IntegrationDetails:
-      description: Integration Details
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Integration'
-      
- # responses/IntegrationList.yaml
-    IntegrationList:
-      description: Integrations list
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Integration'
       
  # responses/OrderCreated.yaml
     OrderCreated:
@@ -1104,7 +1052,7 @@ components: # more componenets
           schema:
             $ref: '#/components/schemas/Attachment'
           example:
-            $ref: '#/components/responses./examples/Attachment'
+            $ref: '#/components/examples/Attachment'
       
  # responses/OrderReport.yaml
     OrderReport:
@@ -1114,7 +1062,7 @@ components: # more componenets
           schema:
             $ref: '#/components/schemas/Report'
           example:
-            $ref: '#/components/responses./examples/Report.yaml#/Hematology'
+            $ref: '#/components/examples/Report_Hematology'
       
  # responses/OrganizationCreated.yaml
     OrganizationCreated:
@@ -1131,40 +1079,7 @@ components: # more componenets
                     readOnly: true
                     allOf:
                       - $ref: '#/components/schemas/User'
-      
- # responses/OrganizationDetails.yaml
-    OrganizationDetails:
-      description: Organization Details
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/Organization'
-              - type: object
-                properties:
-                  owner:
-                    description: Owner of the organization.
-                    readOnly: true
-                    allOf:
-                      - $ref: '#/components/schemas/User'
-                  members:
-                    type: array
-                    description: Members of the organization
-                    readOnly: true
-                    items:
-                      $ref: '#/components/schemas/User'
-                  practices:
-                    type: array
-                    description: Practices owned by the organization.
-                    readOnly: true
-                    items:
-                      $ref: '#/components/schemas/Practice'
-                  providerConfigurations:
-                    type: array
-                    description: Provider configurations managed by the organization.
-                    readOnly: true
-                    items:
-                      $ref: '#/components/schemas/ProviderConfiguration'
+
       
  # responses/OrganizationKeysFound.yaml
     OrganizationKeysFound:
@@ -1173,86 +1088,6 @@ components: # more componenets
         application/json:
           schema:
             $ref: '#/components/schemas/OrganizationApiKeys'
-      
- # responses/PracticeCreated.yaml
-    PracticeCreated:
-      description: Practice Created
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/Practice'
-              - type: object
-                properties:
-                  organization:
-                    description: The organization that the practice belongs to
-                    allOf:
-                      - $ref: '#/components/schemas/Organization'
-                  integrations:
-                    type: array
-                    description: The integrations that are associated with the practice
-                    items:
-                      $ref: '#/components/schemas/Integration'
-      
- # responses/PracticeDetails.yaml
-    PracticeDetails:
-      description: Practice Details
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/Practice'
-              - type: object
-                properties:
-                  integrations:
-                    type: array
-                    description: The integrations that are associated with the practice
-                    items:
-                        $ref: '#/components/schemas/Integration'
-      
- # responses/PracticeList.yaml
-    PracticeList:
-      description: Practice List
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              allOf:
-                - $ref: '#/components/schemas/Practice'
-                - type: object
-                  properties:
-                    integrations:
-                      type: array
-                      description: The integrations that are associated with the practice
-                      items:
-                        $ref: '#/components/schemas/Integration'
-      
- # responses/ProviderConfigurationCreated.yaml
-    ProviderConfigurationCreated:
-      description: Provider Configuration Created
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ProviderConfiguration'
-      
- # responses/ProviderConfigurationFound.yaml
-    ProviderConfigurationFound:
-      description: Provider Configuration Found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ProviderConfiguration'
-      
- # responses/ProviderConfigurationList.yaml
-    ProviderConfigurationList:
-      description: Provider configurations list
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/ProviderConfiguration'
       
  # responses/ProviderDeviceList.yaml
     ProviderDeviceList:
@@ -1264,24 +1099,6 @@ components: # more componenets
             items:
               $ref: '#/components/schemas/ProviderDevice'
       
- # responses/ProviderFound.yaml
-    ProviderFound:
-      description: Provider Found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Provider'
-      
- # responses/ProviderList.yaml
-    ProviderList:
-      description: Provider List
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Provider'
-      
  # responses/ReportFound.yaml
     ReportFound:
       description: Report Found
@@ -1291,13 +1108,13 @@ components: # more componenets
             $ref: '#/components/schemas/Report'
           examples:
             Urinalysis:
-              $ref: '#/components/responses./examples/Report.yaml#/Urinalysis'
+              $ref: '#/components/examples/Report_Urinalysis'
             Hematology:
-              $ref: '#/components/responses./examples/Report.yaml#/Hematology'
+              $ref: '#/components/examples/Report_Hematology'
             Chemistry:
-              $ref: '#/components/responses./examples/Report.yaml#/Chemistry'
+              $ref: '#/components/examples/Report_Chemistry'
             Screening:
-              $ref: '#/components/responses./examples/Report.yaml#/Screening'
+              $ref: '#/components/examples/Report_Screening'
       
  # responses/Service.yaml
     Service:
@@ -1350,42 +1167,7 @@ components: # more componenets
                 type: string
                 description: Species list hash
                 example: 9f6e6800cfae7749eb6c486619254b9c
-      
- # responses/UserCreated.yaml
-    UserCreated:
-      description: User Created
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/User'
-          examples:
-            Example User:
-              $ref: '#/components/responses./examples/User'
- # responses/UserDetails.yaml
-    UserDetails:
-      description: User Details
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/User'
-              - type: object
-                properties:
-                  organization:
-                    description: The organization owned by the user.
-                    allOf:
-                        - $ref: '#/components/schemas/Organization'
-      
-      
- # responses/UserList.yaml
-    UserList:
-      description: User List
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/User'
+
       
   schemas:
  # schemas/Client.yaml
@@ -1571,7 +1353,7 @@ components: # more componenets
         description: |
           Options for the subscription.
         oneOf:
-          - $ref: '#/AzureEventHubsSubscriptionOptions'
+          - $ref: '#/components/schemas/AzureEventHubsSubscriptionOptions'
         example:
           hub_namespace: my-namespace
           hub_name: my-event-hub
@@ -1709,82 +1491,6 @@ components: # more componenets
         practice:
           $ref: '#/components/schemas/Practice'
     
- # schemas/Integration.yaml
-    Integration:
-      title: Integration
-      description: Integration between a practice and a provider
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: The unique identifier of the integration.
-          readOnly: true
-          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
-        status:
-          type: string
-          description: The status of the integration.
-          enum:
-            - RUNNING
-            - STOPPED
-          example: RUNNING
-        integrationOptions:
-          description: The provider-specific integration options.
-          anyOf:
-            - $ref: '#/components/schemas./providers/DemoProvider.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Antech.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Idexx.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Zoetis.yaml#/IntegrationOptions'
-        createdAt:
-          type: string
-          format: date-time
-          description: The date that the integration was created.
-          readOnly: true
-          example: '2020-01-01T00:00:00.000Z'
-        updatedAt:
-          type: string
-          format: date-time
-          description: The date that the integration was updated.
-          readOnly: true
-          example: '2020-01-01T00:00:00.000Z'
-        practice:
-          description: The practice of the integration.
-          allOf:
-            - $ref: '#/components/schemas/Practice'
-        providerConfiguration:
-          description: The provider configuration of the integration.
-          allOf:
-            - $ref: '#/components/schemas/ProviderConfiguration'
-      
- # schemas/IntegrationDescription.yaml
-    IntegrationDescription:
-      title: IntegrationDescription
-      description: Integration description
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: The unique identifier of the integration.
-          readOnly: true
-          example: 175509ad-3b4a-4668-a7b8-3754c5437e03
-        practiceId:
-          type: string
-          format: uuid
-          readOnly: true
-          example: 94f9bdb8-c6f2-4970-8b56-0a2de1fe62e1
-        providerConfigurationId:
-          type: string
-          format: uuid
-          readOnly: true
-          example: 0e0f3afe-9796-4ef1-adeb-92f736e8617f
-        integrationOptions:
-          description: The provider-specific integration options.
-          anyOf:
-            - $ref: '#/components/schemas./providers/DemoProvider.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Antech.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Idexx.yaml#/IntegrationOptions'
-            - $ref: '#/components/schemas./providers/Zoetis.yaml#/IntegrationOptions'
       
  # schemas/Observation.yaml
     Observation:
@@ -2206,42 +1912,6 @@ components: # more componenets
               name: clientId
               description: The client ID for the provider
               required: true
-      
- # schemas/ProviderConfiguration.yaml
-    ProviderConfiguration:
-      title: ProviderConfiguration
-      type: object
-      description: Instance of a configuration for a diagnostic provider.
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: The unique identifier of the provider configuration.
-          readOnly: true
-          example: 0e0f3afe-9796-4ef1-adeb-92f736e8617f
-        providerId:
-          type: string
-          description: The unique identifier of the provider.
-          readOnly: true
-          example: demo
-        configurationOptions:
-          description: The provider-specific configuration object.
-          oneOf:
-            - $ref: '#/components/schemas./providers/Antech.yaml#/Configuration'
-            - $ref: '#/components/schemas./providers/Idexx.yaml#/Configuration'
-            - $ref: '#/components/schemas./providers/Zoetis.yaml#/Configuration'
-        createdAt:
-          type: string
-          format: date-time
-          description: The date that the provider configuration was created
-          readOnly: true
-          example: 2020-01-01T00:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          description: The date that the provider configuration was created
-          readOnly: true
-          example: 2020-01-01T00:00:00.000Z
       
  # schemas/ProviderDevice.yaml
     ProviderDevice:
@@ -2846,6 +2516,747 @@ components: # more componenets
       type: apiKey
       in: header
       name: X-API-Key
+
+  examples:
+    #Patient
+    Patient_Berlin:
+      value:
+        id: 1cc62002-5e24-45b8-87dd-ddddcc2b1b89
+        name: Berlin
+        species: CANIS_LUPUS_FAMILIARIS
+        breed: JACK_RUSSEL_TERRIER
+        sex: MALE
+        birthdate: '2011-05-08'
+        weight:
+          measurement: 8.5
+          units: KG
+
+    Attachment:
+      value:
+        contentType: application/pdf
+        uri: http://example.com/path/to/manifest.pdf
+        data: 'JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9MZW5ndGggMjIgMCBSL0ZpbHRlci9GbGF0ZURlY29kZT4+CnN0cmVhbQp4nJ1S'
+
+    #Report examples
+    Report_Urinalysis:
+      summary: Report (FINAL) containing Urinalysis test results.
+      value:
+        id: 306bdb0f-63b7-466d-8194-ada61c1e1778
+        orderId: 22e7765a-36b6-4987-8554-e1026a1d80f3
+        status: FINAL
+        createdAt: '2020-01-01T00:00:00.000Z'
+        updatedAt: '2020-01-01T00:00:00.000Z'
+        patient:
+          $ref: '#/components/examples/Patient_Berlin'
+        testResultsSet:
+          - $ref: '#components/examples/TestResult_Urinalysis'
+    Report_Hematology:
+      summary: Report (FINAL) containing Hematology test results.
+      value:
+        id: baf3d4fc-6462-424f-9a16-151721189429
+        orderId: 175cce4d-30d9-4275-92d1-e18a7d856779
+        status: FINAL
+        notes: |
+          Slide reviewed microscopically.
+          No parasites seen.
+        createdAt: '2020-01-01T00:00:00.000Z'
+        updatedAt: '2020-01-01T00:00:00.000Z'
+        patient:
+          $ref: '#/components/examples/Patient_Berlin'
+        testResultsSet:
+          - $ref: '#components/examples/TestResult_Hematology'
+    Report_Chemistry:
+      summary: Report (FINAL) containing Chemistry test results.
+      value:
+        id: 523d2b62-5b39-4e99-9d96-727c3ed08dff
+        orderId: 6923f914-b2ac-4d02-9742-b22463363096
+        status: FINAL
+        createdAt: '2019-01-01T00:00:00.000Z'
+        updatedAt: '2019-01-01T00:00:00.000Z'
+        patient:
+          $ref: '#/components/examples/Patient_Berlin'
+        testResultsSet:
+          - $ref: '#components/examples/TestResult_Chemistry'
+    Report_Screening:
+      summary: Report (FINAL) containing full adult screening including a PDF form the provide.
+      value:
+        id: 0adc5db0-c79f-4373-8576-9fc9b858a5ca
+        orderId: 4500852a-adc2-4434-8e56-3de1631a2b63
+        status: FINAL
+        createdAt: '2020-01-01T00:00:00.000Z'
+        updatedAt: '2020-01-01T00:00:00.000Z'
+        patient:
+          $ref: '#/components/examples/Patient_Berlin'
+        presentedForm:
+          - contentType: 'application/pdf'
+            data: JVBERi0xLjEKJcKlwrHDqwoKMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nCiAgICAgL1BhZ2VzIDIgMCBSCiAgPj4KZW5kb2JqCgoyIDAgb2JqCiAgPDwgL1R5cGUgL1BhZ2VzCiAgICAgL0tpZHMgWzMgMCBSXQogICAgIC9Db3VudCAxCiAgICAgL01lZGlhQm94IFswIDAgMzAwIDE0NF0KICA+PgplbmRvYmoKCjMgMCBvYmoKICA8PCAgL1R5cGUgL1BhZ2UKICAgICAgL1BhcmVudCAyIDAgUgogICAgICAvUmVzb3VyY2VzCiAgICAgICA8PCAvRm9udAogICAgICAgICAgIDw8IC9GMQogICAgICAgICAgICAgICA8PCAvVHlwZSAvRm9udAogICAgICAgICAgICAgICAgICAvU3VidHlwZSAvVHlwZTEKICAgICAgICAgICAgICAgICAgL0Jhc2VGb250IC9UaW1lcy1Sb21hbgogICAgICAgICAgICAgICA+PgogICAgICAgICAgID4+CiAgICAgICA+PgogICAgICAvQ29udGVudHMgNCAwIFIKICA+PgplbmRvYmoKCjQgMCBvYmoKICA8PCAvTGVuZ3RoIDU1ID4+CnN0cmVhbQogIEJUCiAgICAvRjEgMTggVGYKICAgIDAgMCBUZAogICAgKEhlbGxvIFdvcmxkKSBUagogIEVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDc3IDAwMDAwIG4gCjAwMDAwMDAxNzggMDAwMDAgbiAKMDAwMDAwMDQ1NyAwMDAwMCBuIAp0cmFpbGVyCiAgPDwgIC9Sb290IDEgMCBSCiAgICAgIC9TaXplIDUKICA+PgpzdGFydHhyZWYKNTY1CiUlRU9GCg==
+        testResultsSet:
+          - $ref: '#/components/examples/TestResult_Urinalysis'
+          - $ref: '#/components/examples/TestResult_Hematology'
+          - $ref: '#/components/examples/TestResult_Chemistry'
+
+          
+    TestResult_Urinalysis:
+      value:
+        name: Urinalysis
+        code: URI
+        status: COMPLETED
+        observations:
+          - name: 'Color'
+            code: 'U923'
+            status: 'DONE'
+            valueString: 'YELLOW'
+          - name: 'Clarity'
+            code: 'U924'
+            status: 'DONE'
+            valueString: 'CLEAR'
+          - name: 'Specific Gravity'
+            code: 'U925'
+            status: 'DONE'
+            valueQuantity:
+              value: 1.005
+          - name: 'pH'
+            code: 'U926'
+            status: 'DONE'
+            valueQuantity:
+              value: 7.0
+          - name: 'Urine Protein'
+            code: 'U927'
+            status: 'DONE'
+            valueString: '+1'
+          - name: 'Glucose'
+            code: 'U928'
+            status: 'DONE'
+            valueString: 'NEGATIVE'
+          - name: 'Ketones'
+            code: 'U929'
+            status: 'DONE'
+            valueString: 'NEGATIVE'
+          - name: 'Blood / Hemoglobin'
+            code: 'U930'
+            status: 'DONE'
+            valueString: 'NEGATIVE'
+          - name: 'Bilirubin'
+            code: 'U931'
+            status: 'DONE'
+            valueString: 'NEGATIVE'
+          - name: 'Urobilinogen'
+            code: 'U932'
+            status: 'DONE'
+            valueString: 'NORMAL'
+          - name: 'White Blood Cells'
+            code: 'U933'
+            status: 'DONE'
+            valueQuantity:
+              value: 0.2
+              unit: 'HPF'
+            referenceRange:
+              - type: NORMAL
+                low: 0.0
+                high: 5.0
+          - name: 'Red Blood Cells'
+            code: 'U934'
+            status: 'DONE'
+            valueString: 'NONE SEEN'
+          - name: 'Bacteria'
+            code: 'U935'
+            status: 'DONE'
+            valueString: 'NONE SEEN'
+          - name: 'Epithelial Cells'
+            code: 'U936'
+            status: 'DONE'
+            valueString: 'RARE (0-1)'
+          - name: 'Mucus'
+            code: 'U937'
+            status: 'DONE'
+            valueString: 'NONE SEEN'
+          - name: 'Casts'
+            code: 'U938'
+            status: 'DONE'
+            valueString: 'NONE SEEN'
+          - name: 'Crystals'
+            code: 'U939'
+            status: 'DONE'
+            valueString: 'OCCASIONAL AMMONIUM MG PHOSPHATE (0-1)/HPF'
+    TestResult_Hematology:
+      value:
+        name: Hematology
+        code: HEM
+        status: COMPLETED
+        observations:
+          - name: RBC
+            code: H3011
+            status: DONE
+            valueQuantity:
+              value: 7.41
+              unit: M/µL
+            referenceRange:
+              - type: NORMAL
+                low: 5.39
+                high: 8.70
+              - type: CRITICAL
+                low: 1.0
+                high: 10.2
+          - name: Hematocrit
+            code: H3012
+            status: DONE
+            valueQuantity:
+              value: 51.9
+              unit: '%'
+            referenceRange:
+              - type: NORMAL
+                low: 38.3
+                high: 56.5
+              - type: CRITICAL
+                low: 6.0
+                high: 66.0
+          - name: Hemoglobin
+            code: H3013
+            status: DONE
+            valueQuantity:
+              value: 16.6
+              unit: g/dL
+            referenceRange:
+              - type: NORMAL
+                low: 13.4
+                high: 20.7
+              - type: CRITICAL
+                low: 2.0
+                high: 23.5
+          - name: MCV
+            code: H3014
+            status: DONE
+            valueQuantity:
+              value: 70
+              unit: fL
+            referenceRange:
+              - type: NORMAL
+                low: 59
+                high: 76
+              - type: CRITICAL
+                low: 50
+                high: 94
+          - name: MCH
+            code: H3015
+            status: DONE
+            valueQuantity:
+              value: 22.5
+              unit: pg
+            referenceRange:
+              - type: NORMAL
+                low: 21.9
+                high: 26.1
+              - type: CRITICAL
+                low: 16.0
+                high: 31.0
+          - name: MCHC
+            code: H3016
+            status: DONE
+            valueQuantity:
+              value: 32.2
+              unit: g/dL
+            referenceRange:
+              - type: NORMAL
+                low: 32.6
+                high: 39.2
+              - type: CRITICAL
+                low: 26.0
+                high: 42.2
+            interpretation: Low
+          - name: '% Reticulocyte'
+            code: H3017
+            status: DONE
+            valueQuantity:
+              value: 0.5
+              unit: '%'
+          - name: 'Reticulocytes'
+            code: H3018
+            status: DONE
+            valueQuantity:
+              value: 37
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 10
+                high: 110
+              - type: CRITICAL
+                low: 0
+                high: 410
+          - name: 'Reticulocyte Hemoglobin'
+            code: H3019
+            status: DONE
+            valueQuantity:
+              value: 25.2
+              unit: pg
+            referenceRange:
+              - type: NORMAL
+                low: 24.5
+                high: 31.8
+              - type: CRITICAL
+                low: 10.0
+                high: 35.0
+          - name: WBC
+            code: H3020
+            status: DONE
+            valueQuantity:
+              value: 11.7
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 4.9
+                high: 17.6
+              - type: CRITICAL
+                low: 0.5
+                high: 90
+          - name: '% Neutrophils'
+            code: H3021
+            status: DONE
+            valueQuantity:
+              value: 82.3
+              unit: '%'
+          - name: '% Lymphocytes'
+            code: H3022
+            status: DONE
+            valueQuantity:
+              value: 8.5
+              unit: '%'
+          - name: '% Monocytes'
+            code: H3023
+            status: DONE
+            valueQuantity:
+              value: 8.0
+              unit: '%'
+          - name: '% Eosinophils'
+            code: H3024
+            status: DONE
+            valueQuantity:
+              value: 1.1
+              unit: '%'
+          - name: '% Basophils'
+            code: H3025
+            status: DONE
+            valueQuantity:
+              value: 0.1
+              unit: '%'
+          - name: Neutrophils
+            code: H3026
+            status: DONE
+            valueQuantity:
+              value: 9.629
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 2.94
+                high: 12.67
+              - type: CRITICAL
+                low: 0
+                high: 51
+          - name: Lymphocytes
+            code: H3027
+            status: DONE
+            valueQuantity:
+              value: 0.995
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 0.5
+                high: 1.5
+              - type: CRITICAL
+                low: 0
+                high: 2.5
+            interpretation: Low
+          - name: Monocytes
+            code: H3028
+            status: DONE
+            valueQuantity:
+              value: 0.936
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 0.13
+                high: 1.15
+              - type: CRITICAL
+                low: 0
+                high: 6.6
+          - name: Eosinophils
+            code: H3029
+            status: DONE
+            valueQuantity:
+              value: 0.129
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 0.070
+                high: 1.490
+              - type: CRITICAL
+                low: 0.000
+                high: 5.000
+          - name: Basophils
+            code: H3030
+            status: DONE
+            valueQuantity:
+              value: 0.012
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 0.00
+                high: 0.10
+              - type: CRITICAL
+                low: 0.00
+                high: 0.35
+          - name: Platelets
+            code: H3031
+            status: DONE
+            notes: Platelet clumps seen on slide. Platelet count and blood film estimate may be falsely decreased.
+            valueQuantity:
+              value: 442
+              unit: K/µL
+            referenceRange:
+              - type: NORMAL
+                low: 143
+                high: 448
+              - type: CRITICAL
+                low: 0
+                high: 1000
+    TestResult_Chemistry:
+      value:
+        name: Chemistry
+        code: CHE
+        status: COMPLETED
+        observations:
+        - name: 'Glucose'
+          code: 'C2216'
+          status: DONE
+          valueQuantity:
+            value: 94
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 63
+              high: 114
+            - type: CRITICAL
+              low: 21
+              high: 700
+        - name: 'IDEXX SDMA'
+          code: 'C2217'
+          status: DONE
+          notes: 'SDMA is increased and creatinine is within the reference interval: likely impaired GFR and kidney function. Recommended next step: evaluate complete urinalysis. For information on recommended actions visit: www.idexx.com/sdmaalgorithm'
+          valueQuantity:
+            value: 16
+            unit: 'µg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 0
+              high: 14
+            - type: CRITICAL
+              low: 0
+              high: 35
+          interpretation: High
+        - name: 'Creatinine'
+          code: 'C2218'
+          status: DONE
+          valueQuantity:
+            value: 0.5
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 0.5
+              high: 1.5
+            - type: CRITICAL
+              low: 0
+              high: 5
+        - name: 'BUN'
+          code: 'C2219'
+          status: DONE
+          valueQuantity:
+            value: 12
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 9
+              high: 31
+            - type: CRITICAL
+              low: 0
+              high: 100
+        - name: 'BUN: Creatinine Ratio'
+          code: 'C2220'
+          status: DONE
+          valueQuantity:
+            value: 24.0
+        - name: 'Phosphorus'
+          code: 'C2221'
+          status: DONE
+          valueQuantity:
+            value: 5.1
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 2.5
+              high: 6.1
+            - type: CRITICAL
+              low: 0.5
+              high: 20
+        - name: 'Calcium'
+          code: 'C2222'
+          status: DONE
+          valueQuantity:
+            value: 9.9
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 8.4
+              high: 11.8
+            - type: CRITICAL
+              low: 2
+              high: 15.5
+        - name: 'Sodium'
+          code: 'C2223'
+          status: DONE
+          valueQuantity:
+            value: 151
+            unit: 'mmol/L'
+          referenceRange:
+            - type: NORMAL
+              low: 142
+              high: 152
+            - type: CRITICAL
+              low: 115
+              high: 165
+        - name: 'Potassium'
+          code: 'C2224'
+          status: DONE
+          valueQuantity:
+            value: 4.9
+            unit: 'mmol/L'
+          referenceRange:
+            - type: NORMAL
+              low: 4.0
+              high: 5.4
+            - type: CRITICAL
+              low: 2.0
+              high: 7.5
+        - name: 'Na: K Ratio'
+          code: 'C2225'
+          status: DONE
+          valueQuantity:
+            value: 31
+          referenceRange:
+            - type: NORMAL
+              low: 28
+              high: 37
+            - type: CRITICAL
+              low: 18
+              high: 45
+        - name: 'Chloride'
+          code: 'C2226'
+          status: DONE
+          valueQuantity:
+            value: 109
+            unit: 'mmol/L'
+          referenceRange:
+            - type: NORMAL
+              low: 108
+              high: 119
+            - type: CRITICAL
+              low: 50
+              high: 145
+        - name: 'TCO2 (Bicarbonate)'
+          code: 'C2227'
+          status: DONE
+          valueQuantity:
+            value: 26
+            unit: 'mmol/L'
+          referenceRange:
+            - type: NORMAL
+              low: 13
+              high: 27
+            - type: CRITICAL
+              low: 5
+              high: 32
+        - name: 'Anion Gap'
+          code: 'C2228'
+          status: DONE
+          valueQuantity:
+            value: 21
+            unit: 'mmol/L'
+          referenceRange:
+            - type: NORMAL
+              low: 11
+              high: 26
+            - type: CRITICAL
+              low: 8
+              high: 40
+        - name: 'Total Protein'
+          code: 'C2229'
+          status: DONE
+          valueQuantity:
+            value: 6.0
+            unit: 'g/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 5.5
+              high: 7.5
+            - type: CRITICAL
+              low: 1
+              high: 9.6
+        - name: 'Albumin'
+          code: 'C2230'
+          status: DONE
+          valueQuantity:
+            value: 3.0
+            unit: 'g/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 2.7
+              high: 3.9
+            - type: CRITICAL
+              low: 0.5
+              high: 4.5
+        - name: 'Globulin'
+          code: 'C2231'
+          status: DONE
+          valueQuantity:
+            value: 3.0
+            unit: 'g'
+          referenceRange:
+            - type: NORMAL
+              low: 2.4
+              high: 4
+            - type: CRITICAL
+              low: 0.5
+              high: 7.2
+        - name: 'Albumin: Globulin Ratio'
+          code: 'C2232'
+          status: DONE
+          valueQuantity:
+            value: 1.0
+          referenceRange:
+            - type: NORMAL
+              low: 0.7
+              high: 1.5
+            - type: CRITICAL
+              low: 0.1
+              high: 1.6
+        - name: 'ALT'
+          code: 'C2233'
+          status: DONE
+          valueQuantity:
+            value: 140
+            unit: 'U/L'
+          referenceRange:
+            - type: NORMAL
+              low: 18
+              high: 121
+            - type: CRITICAL
+              low: 0
+              high: 1700
+          interpretation: High
+        - name: 'AST'
+          code: 'C2234'
+          status: DONE
+          valueQuantity:
+            value: 28
+            unit: 'U/L'
+          referenceRange:
+            - type: NORMAL
+              low: 16
+              high: 55
+            - type: CRITICAL
+              low: 0
+              high: 500
+        - name: 'ALP'
+          code: 'C2235'
+          status: DONE
+          valueQuantity:
+            value: 989
+            unit: 'U/L'
+          referenceRange:
+            - type: NORMAL
+              low: 5
+              high: 160
+            - type: CRITICAL
+              low: 0
+              high: 600
+          interpretation: High
+        - name: 'GGT'
+          code: 'C2236'
+          status: DONE
+          valueQuantity:
+            value: 12
+            unit: 'U/L'
+          referenceRange:
+            - type: NORMAL
+              low: 0
+              high: 13
+            - type: CRITICAL
+              low: 0
+              high: 200
+        - name: 'Bilirubin - Total'
+          code: 'C2237'
+          status: DONE
+          valueQuantity:
+            value: 0.2
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 0
+              high: 0.3
+            - type: CRITICAL
+              low: 0
+              high: 10
+        - name: 'Bilirubin - Conjugated'
+          code: 'C2238'
+          status: DONE
+          valueQuantity:
+            value: 0.1
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 0
+              high: 0.1
+            - type: CRITICAL
+              low: 0
+              high: 10
+        - name: 'Cholesterol'
+          code: 'C2239'
+          status: DONE
+          valueQuantity:
+            value: 307
+            unit: 'mg/dL'
+          referenceRange:
+            - type: NORMAL
+              low: 131
+              high: 347
+            - type: CRITICAL
+              low: 20
+              high: 800
+        - name: 'Creatine Kinase'
+          code: 'C2240'
+          status: DONE
+          valueQuantity:
+            value: 308
+            unit: 'U/L'
+          referenceRange:
+            - type: NORMAL
+              low: 10
+              high: 200
+            - type: CRITICAL
+              low: 0
+              high: 2500
+          interpretation: High
+        - name: 'Hemolysis Index'
+          code: 'C2241'
+          status: DONE
+          notes: 'Index of N, 1+, 2+ exhibits no significant effect on chemistry values.'
+          valueString: 'N'
+        - name: 'Lipemia Index'
+          code: 'C2242'
+          status: DONE
+          notes: 'Index of N, 1+, 2+ exhibits no significant effect on chemistry values.'
+          valueString: 'N'
+
+
+
 tags:
   - name: Health
   - name: Admin
