@@ -1174,48 +1174,158 @@ components: # more componenets
   schemas:
  # schemas/Client.yaml
     Client:
-      title: Client
+      title: Client (RelatedPerson)
       type: object
       description: |
         The client of the order. Usually the pet owner.
+        Aligns with FHIR R4 RelatedPerson resource representing a person with a relationship to the patient.
       properties:
+        resourceType:
+          type: string
+          enum: [RelatedPerson]
+          description: FHIR resource type identifier
+          example: RelatedPerson
         id:
           type: string
           format: uuid
-          description: The unique identifier of the client.
+          description: The unique identifier of the client. Maps to FHIR RelatedPerson.id
           readOnly: true
           example: 11bd1e6c-2a94-418c-8c2a-3b059f1cb138
-        firstName:
-          type: string
-          description: The first name of the client.
-          example: John
-        lastName:
-          type: string
-          description: The last name of the client.
-          example: Smith
+        meta:
+          type: object
+          description: FHIR metadata about the resource
+          properties:
+            versionId:
+              type: string
+            lastUpdated:
+              type: string
+              format: date-time
         identifier:
           type: array
           description: |
-            Business or system (not resource) identifiers.
+            Business or system (not resource) identifiers. Maps to FHIR Identifier array.
           items:
             $ref: '#/components/schemas/Identifier'
+        active:
+          type: boolean
+          description: Whether this related person's record is in active use
+          example: true
+        patient:
+          type: object
+          description: |
+            The patient this person is related to. Maps to FHIR Reference to Patient resource.
+            Required in FHIR RelatedPerson.
+          properties:
+            reference:
+              type: string
+              example: Patient/74c7cac2-0bd5-4e56-b114-f088a502dc6a
+            display:
+              type: string
+        relationship:
+          type: array
+          description: |
+            The nature of the relationship. Maps to FHIR CodeableConcept array.
+            For veterinary use, typically "OWNER" or other relevant relationship codes.
+          items:
+            type: object
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    system:
+                      type: string
+                      description: Identity of the terminology system
+                      example: http://dmcapi.org/fhir/CodeSystem/veterinary-relationships
+                    code:
+                      type: string
+                      description: Symbol in syntax defined by the system
+                      example: OWNER
+                    display:
+                      type: string
+                      description: Representation defined by the system
+                      example: Pet Owner
+              text:
+                type: string
+                description: Plain text representation
+                example: Owner
+        name:
+          type: array
+          description: |
+            The name(s) associated with the related person. Maps to FHIR HumanName array.
+          items:
+            type: object
+            properties:
+              use:
+                type: string
+                enum: [usual, official, temp, nickname, anonymous, old, maiden]
+                example: official
+              family:
+                type: string
+                description: Family name (last name)
+                example: Smith
+              given:
+                type: array
+                description: Given names
+                items:
+                  type: string
+                example: [John]
+              text:
+                type: string
+                description: Full name as a single string
+                example: John Smith
+        telecom:
+          type: array
+          description: Contact details for the person
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+                enum: [phone, fax, email, pager, url, sms, other]
+              value:
+                type: string
+              use:
+                type: string
+                enum: [home, work, temp, old, mobile]
+        address:
+          type: array
+          description: Address(es) where the related person can be contacted
+          items:
+            $ref: '#/components/schemas/Address'
+        period:
+          type: object
+          description: Period of time that this relationship is considered valid
+          properties:
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+        firstName:
+          type: string
+          description: The first name of the client (for backward compatibility). In FHIR, use name array.
+          example: John
+        lastName:
+          type: string
+          description: The last name of the client (for backward compatibility). In FHIR, use name array.
+          example: Smith
         contact:
-          description: The contact details for the client.
+          description: The contact details for the client (for backward compatibility). In FHIR, use telecom array.
           allOf:
           - $ref: '#/components/schemas/Contact'
-        address:
-          description: The address of the client.
-          allOf:
-          - $ref: '#/components/schemas/Address'
         isDoctor:
           type: boolean
-          description: Whether the client is a doctor.
-          example: true
+          description: Whether the client is a doctor (custom extension for veterinary practice).
+          example: false
         isStaff:
           type: boolean
-          description: Whether the client is a staff member.
+          description: Whether the client is a staff member (custom extension for veterinary practice).
           example: false
       required:
+      - resourceType
       - id
 
  # schemas/ConfigurationOption.yaml
@@ -2592,36 +2702,154 @@ components: # more componenets
 
  # schemas/Veterinarian.yaml
     Veterinarian:
-      title: Veterinarian
+      title: Veterinarian (Practitioner)
       type: object
       description: |
-        The veterinarian requesting the order.
+        The veterinarian requesting the order. Aligns with FHIR R4 Practitioner resource.
       properties:
+        resourceType:
+          type: string
+          enum: [Practitioner]
+          description: FHIR resource type identifier
+          example: Practitioner
         id:
           type: string
           format: uuid
-          description: The unique identifier of the veterinarian.
+          description: The unique identifier of the veterinarian. Maps to FHIR Practitioner.id
           readOnly: true
           example: 5cd4983d-be3b-4bfc-a8a2-4371393f26c8
-        firstName:
-          type: string
-          description: The first name of the veterinarian.
-          example: John
-        lastName:
-          type: string
-          description: The last name of the veterinarian.
-          example: Doe
+        meta:
+          type: object
+          description: FHIR metadata about the resource
+          properties:
+            versionId:
+              type: string
+            lastUpdated:
+              type: string
+              format: date-time
         identifier:
           type: array
           description: |
-            Business or system (not resource) identifiers.
+            Business or system (not resource) identifiers. Maps to FHIR Identifier array.
+            May include license numbers, NPI, DEA numbers, etc.
           items:
             $ref: '#/components/schemas/Identifier'
+        active:
+          type: boolean
+          description: Whether this practitioner's record is in active use
+          example: true
+        name:
+          type: array
+          description: |
+            The name(s) associated with the practitioner. Maps to FHIR HumanName array.
+          items:
+            type: object
+            properties:
+              use:
+                type: string
+                description: The use of this name
+                enum: [usual, official, temp, nickname, anonymous, old, maiden]
+                example: official
+              family:
+                type: string
+                description: Family name (last name)
+                example: Doe
+              given:
+                type: array
+                description: Given names (first name, middle names)
+                items:
+                  type: string
+                example: [John, Robert]
+              prefix:
+                type: array
+                description: Parts that come before the name (Dr., etc.)
+                items:
+                  type: string
+                example: [Dr.]
+              suffix:
+                type: array
+                description: Parts that come after the name (Jr., DVM, etc.)
+                items:
+                  type: string
+                example: [DVM]
+              text:
+                type: string
+                description: Text representation of the full name
+                example: Dr. John Doe, DVM
+        telecom:
+          type: array
+          description: Contact details for the practitioner
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+                enum: [phone, fax, email, pager, url, sms, other]
+              value:
+                type: string
+              use:
+                type: string
+                enum: [home, work, temp, old, mobile]
+        qualification:
+          type: array
+          description: Certification, licenses, or training pertaining to the provision of care
+          items:
+            type: object
+            properties:
+              identifier:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Identifier'
+              code:
+                type: object
+                description: Coded representation of the qualification
+                properties:
+                  coding:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        system:
+                          type: string
+                        code:
+                          type: string
+                        display:
+                          type: string
+                  text:
+                    type: string
+                    example: Doctor of Veterinary Medicine
+              period:
+                type: object
+                description: Period during which the qualification is valid
+                properties:
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+              issuer:
+                type: object
+                description: Organization that regulates and issues the qualification
+                properties:
+                  reference:
+                    type: string
+                  display:
+                    type: string
+        firstName:
+          type: string
+          description: The first name of the veterinarian (for backward compatibility). In FHIR, use name array.
+          example: John
+        lastName:
+          type: string
+          description: The last name of the veterinarian (for backward compatibility). In FHIR, use name array.
+          example: Doe
         contact:
-          description: The contact details for the veterinarian.
+          description: The contact details for the veterinarian (for backward compatibility). In FHIR, use telecom array.
           allOf:
           - $ref: '#/components/schemas/Contact'
       required:
+      - resourceType
       - id
 
  # types/Address.yaml
